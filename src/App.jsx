@@ -94,13 +94,13 @@ function App() {
       <div 
         {...getRootProps()} 
         style={{ 
-          flex: 2, // 20% of the window height
+          flex: 1, // 10% of the window height
           alignSelf: "center",
           width: "100%",
           maxWidth: "600px",
           height: "200px",
           border: "2px dashed #aaa",
-          lineHeight: "200px",
+          lineHeight: "100px",
           textAlign: "center",
           fontSize: "24px",
           color: "#aaa",
