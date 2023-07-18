@@ -4,7 +4,6 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AssetRecordType, Tldraw } from "@tldraw/tldraw";
 import "@tldraw/tldraw/tldraw.css";
-import { Base64 } from "js-base64";
 
 function App() {
   const handleMount = useCallback((app, imageSrcs) => {
@@ -26,10 +25,15 @@ function App() {
       };
 
       app.createAssets([asset]);
+
+      const rowIndex = Math.floor(index / 5);
+      const columnIndex = index % 5;
       app.createShapes([
         {
           type: "image",
-          props: { 
+          x: columnIndex * 400,
+          y: rowIndex * 400,
+          props: {
             w: 400,
             h: 340,
             assetId,
@@ -67,18 +71,18 @@ function App() {
     });
   }, []);
 
-  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    noClick: true, // Disable clicking on the drop zone
+  });
 
   return (
-    <div {...getRootProps()}>
-      <input {...getInputProps()} />
-      <ToastContainer />
-      <p>Drag 'n' drop a Jupyter notebook here, or click to select one</p>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <div
         style={{
+          flex: 8, // 80% of the window height
           position: "relative",
-          width: "1000px",
-          height: "1000px",
+          width: "100vw", // Full window width
         }}
       >
         <Tldraw
@@ -86,6 +90,27 @@ function App() {
             window.app = app; // save a reference to the Tldraw instance for later
           }}
         />
+      </div>
+      <div 
+        {...getRootProps()} 
+        style={{ 
+          flex: 2, // 20% of the window height
+          alignSelf: "center",
+          width: "100%",
+          maxWidth: "600px",
+          height: "200px",
+          border: "2px dashed #aaa",
+          lineHeight: "200px",
+          textAlign: "center",
+          fontSize: "24px",
+          color: "#aaa",
+          margin: "15px auto",
+          backgroundColor: isDragActive ? 'orange' : 'transparent'
+        }}
+      >
+        <input {...getInputProps()} />
+        <ToastContainer />
+        <p>Drag 'n' drop a Jupyter notebook here</p>
       </div>
     </div>
   );
