@@ -1,36 +1,46 @@
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { AssetRecordType, Tldraw } from "@tldraw/tldraw";
+import "@tldraw/tldraw/tldraw.css";
 
 export default function App() {
   const handleMount = (app) => {
-    // You can use the app API here! e.g. app.selectAll()
-    // app.patchAssets({
-    //   myAssetId: {
-    //     id: "myAssetId",
-    //     type: TDAssetType.Image,
-    //     fileName: "card-repo.png",
-    //     src: "https://raw.githubusercontent.com/scikit-image/scikit-image/main/skimage/data/chelsea.png"
-    //   }
-    // });
+    const assetId = AssetRecordType.createId();
+    const placeholderAsset = {
+      id: assetId,
+      typeName: "asset",
+      type: "image",
+      props: {
+        w: 400,
+        h: 340,
+        name: "card-repo.png",
+        isAnimated: false,
+        mimeType: null,
+        src: "https://raw.githubusercontent.com/scikit-image/scikit-image/main/skimage/data/chelsea.png",
+      },
+      meta: {},
+    };
 
-    // app.createShapes({
-    //   id: "myImage",
-    //   type: TDShapeType.Image,
-    //   assetId: "myAssetId",
-    //   point: [64, 64],
-    //   size: [400, 340]
-    // });
+    app.createAssets([placeholderAsset]);
+    app.createShapes([
+      {
+        type: "image",
+        props: {
+          w: 400,
+          h: 340,
+          assetId,
+        },
+      },
+    ]);
   };
 
-return (
-        <div
-        style={{
-            position: "relative",
-            width: "800px",
-            height: "350px"
-        }}
-        >
-        <Tldraw onMount={handleMount} />
-        </div>
-    )
-    }
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "1000px",
+        height: "1000px",
+      }}
+    >
+      <Tldraw onMount={handleMount} />
+    </div>
+  );
+}
