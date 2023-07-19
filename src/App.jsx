@@ -8,10 +8,12 @@ import "@tldraw/tldraw/tldraw.css";
 function App() {
   const handleMount = useCallback(async (app, imageSrcs) => {
     const gap = 100; // gap between images
-    const positions = []; // for storing x and y positions
+    const rowWidths = [0]; // for storing the current width of each row
     let currentY = 0; // the initial y position
+    let maxHeight = 0; // maximum height in each row
 
-    imageSrcs.forEach(async (src, index) => {
+    for (let i = 0; i < imageSrcs.length; i++) {
+      const src = imageSrcs[i];
       const { width, height } = await loadImageDimensions(src);
       const assetId = AssetRecordType.createId();
       const asset = {
@@ -21,7 +23,7 @@ function App() {
         props: {
           w: width,
           h: height,
-          name: `image-${index}.png`,
+          name: `image-${i}.png`,
           isAnimated: false,
           mimeType: "image/png",
           src: src,
@@ -32,20 +34,26 @@ function App() {
       app.createAssets([asset]);
 
       // Calculate x position
-      const columnIndex = index % 5;
-      let x = columnIndex * (width + gap);
+      const rowIndex = Math.floor(i / 5);
+      let x = rowWidths[rowIndex];
 
       // Calculate y position
       let y = currentY;
 
-      if (columnIndex === 0 && index !== 0) {
+      if (i % 5 === 0 && i !== 0) {
         // We're starting a new row, so increase y by the height of the tallest image in the previous row + gap
-        currentY += Math.max(...positions.slice(index - 5, index).map(pos => pos.height)) + gap;
+        currentY += maxHeight + gap;
         y = currentY;
+        maxHeight = 0; // Reset maximum height for the new row
+
+        // Initialize the width for the new row
+        rowWidths[rowIndex] = 0;
       }
 
-      // Store the position and height
-      positions.push({ x, y, height });
+      // Update the width of the current row
+      rowWidths[rowIndex] += width + gap;
+
+      maxHeight = Math.max(maxHeight, height); // Calculate maximum height in each row
 
       app.createShapes([
         {
@@ -59,8 +67,10 @@ function App() {
           },
         },
       ]);
-    });
+    }
   }, []);
+
+
 
   const onDrop = useCallback((acceptedFiles) => {
     acceptedFiles.forEach((file) => {
