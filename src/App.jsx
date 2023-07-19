@@ -6,16 +6,21 @@ import { AssetRecordType, Tldraw } from "@tldraw/tldraw";
 import "@tldraw/tldraw/tldraw.css";
 
 function App() {
-  const handleMount = useCallback((app, imageSrcs) => {
-    imageSrcs.forEach((src, index) => {
+  const handleMount = useCallback(async (app, imageSrcs) => {
+    const gap = 100; // gap between images
+    const positions = []; // for storing x and y positions
+    let currentY = 0; // the initial y position
+
+    imageSrcs.forEach(async (src, index) => {
+      const { width, height } = await loadImageDimensions(src);
       const assetId = AssetRecordType.createId();
       const asset = {
         id: assetId,
         typeName: "asset",
         type: "image",
         props: {
-          w: 400,
-          h: 340,
+          w: width,
+          h: height,
           name: `image-${index}.png`,
           isAnimated: false,
           mimeType: "image/png",
@@ -26,16 +31,30 @@ function App() {
 
       app.createAssets([asset]);
 
-      const rowIndex = Math.floor(index / 5);
+      // Calculate x position
       const columnIndex = index % 5;
+      let x = columnIndex * (width + gap);
+
+      // Calculate y position
+      let y = currentY;
+
+      if (columnIndex === 0 && index !== 0) {
+        // We're starting a new row, so increase y by the height of the tallest image in the previous row + gap
+        currentY += Math.max(...positions.slice(index - 5, index).map(pos => pos.height)) + gap;
+        y = currentY;
+      }
+
+      // Store the position and height
+      positions.push({ x, y, height });
+
       app.createShapes([
         {
           type: "image",
-          x: columnIndex * 400,
-          y: rowIndex * 400,
+          x: x,
+          y: y,
           props: {
-            w: 400,
-            h: 340,
+            w: width,
+            h: height,
             assetId,
           },
         },
@@ -80,9 +99,9 @@ function App() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <div
         style={{
-          flex: 8, // 80% of the window height
+          flex: 1,
           position: "relative",
-          width: "100vw", // Full window width
+          width: "100vw",
         }}
       >
         <Tldraw
@@ -94,13 +113,12 @@ function App() {
       <div 
         {...getRootProps()} 
         style={{ 
-          flex: 1, // 10% of the window height
+          height: "100px", 
           alignSelf: "center",
           width: "100%",
           maxWidth: "600px",
-          height: "200px",
           border: "2px dashed #aaa",
-          lineHeight: "100px",
+          lineHeight: "200px",
           textAlign: "center",
           fontSize: "24px",
           color: "#aaa",
@@ -114,6 +132,16 @@ function App() {
       </div>
     </div>
   );
+}
+
+// Function to load image and get its dimensions
+function loadImageDimensions(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.width, height: img.height });
+    img.onerror = reject;
+    img.src = src;
+  });
 }
 
 export default App;
